@@ -1,63 +1,62 @@
-const { ApolloServer, gql } = require('apollo-server');
+import { v4 as uuidv4 } from 'uuid';
+import { ApolloServer, gql } from 'apollo-server';
 
-// 用于生成唯一ID的计数器
-let idCounter = 0;
-
-// 生成下一个ID
-const getNextId = () => {
-  idCounter += 1;
-  return String(idCounter);
-};
-
-// 定义GraphQL schema
+// Define GraphQL schema
 const typeDefs = gql`
+  # Book type definition with required fields
   type Book {
     id: ID!
     title: String!
     author: String!
   }
 
+  # Query type for retrieving books
   type Query {
-    books: [Book]
-    book(id: ID!): Book
+    books: [Book]      # Get all books
+    book(id: ID!): Book  # Get a specific book by ID
   }
 
+  # Mutation type for modifying books
   type Mutation {
-    addBook(title: String!, author: String!): Book
-    deleteBook(id: ID!): Book
+    addBook(title: String!, author: String!): Book    # Add a new book
+    deleteBook(id: ID!): Book                         # Delete a book by ID
   }
 `;
 
-// 模拟数据
+// Sample data
 let books = [
   {
-    id: getNextId(),
-    title: '三体',
-    author: '刘慈欣'
+    id: uuidv4(),
+    title: '1984',
+    author: 'George Orwell'
   },
   {
-    id: getNextId(),
-    title: '活着',
-    author: '余华'
+    id: uuidv4(),
+    title: 'One Hundred Years of Solitude',
+    author: 'Gabriel García Márquez'
   }
 ];
 
-// 解析器
+// Resolvers implementation
 const resolvers = {
   Query: {
+    // Resolver for getting all books
     books: () => books,
+    // Resolver for getting a specific book by ID
     book: (_, { id }) => books.find(book => book.id === id)
   },
   Mutation: {
+    // Resolver for adding a new book
     addBook: (_, { title, author }) => {
       const book = {
-        id: getNextId(),
+        id: uuidv4(),
         title,
         author
       };
       books.push(book);
       return book;
     },
+    // Resolver for deleting a book
     deleteBook: (_, { id }) => {
       const bookIndex = books.findIndex(book => book.id === id);
       if (bookIndex === -1) return null;
@@ -67,9 +66,10 @@ const resolvers = {
   }
 };
 
-// 创建Apollo Server
+// Initialize Apollo Server with schema and resolvers
 const server = new ApolloServer({ typeDefs, resolvers });
 
+// Start the server
 server.listen().then(({ url }) => {
   console.log(`🚀 Server ready at ${url}`);
 }); 
